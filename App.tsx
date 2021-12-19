@@ -1,15 +1,14 @@
+import NetInfo from '@react-native-community/netinfo';
 import {DefaultTheme, NavigationContainer} from '@react-navigation/native';
-import React from 'react';
-import Navigator from './src/components/Navigator';
-import {COLOR} from './src/utils/constants';
+import React, {useEffect, useState} from 'react';
+import {StatusBar, StyleSheet, Text, View} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-import {FavProviderContainer} from './src/context/Fav';
-import { useNetInfo } from '@react-native-community/netinfo';
-import { StyleSheet, Text, View } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Navigator from './src/components/Navigator';
 import Spacer from './src/components/Spacer';
-
+import {FavProviderContainer} from './src/context/Fav';
+import {COLOR} from './src/utils/constants';
 
 AntDesign.loadFont().then();
 Ionicons.loadFont().then();
@@ -28,23 +27,39 @@ const App = () => {
       notification: COLOR.light,
     },
   };
+  const [isOffline, setOfflineStatus] = useState(false);
 
-  const netInfo = useNetInfo();
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      console.log(state.isConnected);
+      console.log(state.isInternetReachable);
+      const offline = !(state.isConnected && state.isInternetReachable);
+      setOfflineStatus(offline);
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <NavigationContainer theme={navTheme}>
       <FavProviderContainer>
-      {netInfo && !netInfo.isConnected ? (
-        <View style={styles.MainContainer}>
-          <Text style={{ fontSize: 24, textAlign: 'center', marginBottom: 20 }}>
-            Can't connect to internet. Please check your network settings!
-          </Text>
-          <Spacer height={50} />
-        </View>
-      ) : (
-        <Navigator />
-      )}
+        {isOffline ? (
+          <View style={styles.MainContainer}>
+            <Text style={{fontSize: 24, textAlign: 'center', marginBottom: 20}}>
+              Can't connect to internet. Please check your network settings!
+            </Text>
+            <Spacer height={50} />
+          </View>
+        ) : (
+          <>
+            <StatusBar
+              animated={true}
+              backgroundColor="transparent"
+              translucent={true}
+            />
 
+            <Navigator />
+          </>
+        )}
       </FavProviderContainer>
     </NavigationContainer>
   );
@@ -60,4 +75,3 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 });
-

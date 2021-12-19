@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {Dimensions, Image, ScrollView} from 'react-native';
+import {Alert, Dimensions, Image, ScrollView} from 'react-native';
 import MovieScrollView from '../components/MovieScrollView';
 import {connect} from '../core/base';
 import {CONSTANT} from '../utils/constants';
+import {handleError} from '../utils/error-handler';
 
 const {width} = Dimensions.get('window');
 
@@ -18,28 +19,40 @@ const Main = () => {
     try {
       const {data} = await connect.get('movie/580489');
       setHero(data);
-    } catch (error) {}
+    } catch (error) {
+      const err = handleError(error);
+      Alert.alert(err.message);
+    }
   };
 
   const getRecommended = async () => {
     try {
       const {data} = await connect.get('movie/upcoming');
       setRecommended(data.results);
-    } catch (error) {}
+    } catch (error) {
+      const err = handleError(error);
+      Alert.alert(err.message);
+    }
   };
 
   const getTopRated = async () => {
     try {
       const {data} = await connect.get('movie/top_rated');
       setTopRated(data.results);
-    } catch (error) {}
+    } catch (error) {
+      const err = handleError(error);
+      Alert.alert(err.message);
+    }
   };
 
   const getPopular = async () => {
     try {
       const {data} = await connect.get('movie/popular');
       setPopular(data.results);
-    } catch (error) {}
+    } catch (error) {
+      const err = handleError(error);
+      Alert.alert(err.message);
+    }
   };
 
   useEffect(() => {
