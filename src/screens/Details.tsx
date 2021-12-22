@@ -15,9 +15,35 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import FavContext from '../context/Fav';
 
 const Details = ({route}: any) => {
+  const [blackList, setblackList] = useState<number[]>([]);
   const movie = route.params;
 
-const { fav, addToFav, removeFromFav } = useContext(FavContext);
+
+  const {fav, addToFav, removeFromFav} = useContext(FavContext);
+
+  const getBlackList = async () => {
+    const value = await AsyncStorage.getItem('@BlackList');
+    if (value !== null) {
+      setblackList(JSON.parse(value))
+    }
+  };
+
+  const removeFromBlackList = async (id: number) => {
+    const list = blackList.filter(blocked => blocked !== id);
+    console.log(list);
+    setblackList(list);
+    await AsyncStorage.setItem('@BlackList', JSON.stringify(list));
+  };
+
+  const addToBlackList = async (id: number) => {
+    const list = [...blackList, id];
+    setblackList(list);
+    await AsyncStorage.setItem('@BlackList', JSON.stringify(list));
+  };
+
+  useEffect(() => {
+    getBlackList();
+  }, []);
 
   return (
     <ScrollView>
@@ -38,9 +64,18 @@ const { fav, addToFav, removeFromFav } = useContext(FavContext);
         </View>
         <Spacer height={10} />
         {fav.includes(movie) ? (
-          <UiButton onPress={() => removeFromFav(movie)} text="Remove from Favorite" />
+          <UiButton
+            onPress={() => removeFromFav(movie)}
+            text="Remove from Favorite"
+          />
         ) : (
           <UiButton onPress={() => addToFav(movie)} text="Add to Favorite" />
+        )}
+        <Spacer height={10} />
+        {blackList.includes(movie.id) ? (
+          <UiButton onPress={() => removeFromBlackList(movie.id)} text="Remove from search blacklist" />
+        ) : (
+          <UiButton onPress={() => addToBlackList(movie.id)} text="Add to search blacklist" />
         )}
         <Spacer height={10} />
         <View>

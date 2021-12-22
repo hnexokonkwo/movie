@@ -1,25 +1,30 @@
 import React, {useState} from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  NativeSyntheticEvent,
-  TextInputChangeEventData,
-  StyleSheet,
-  Image,
   Dimensions,
+  Image,
+  NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  TextInputChangeEventData,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Input from '../components/Input';
 import {connect} from '../core/base';
 import {Component, FlexDirections} from '../styles';
 import {COLOR, CONSTANT} from '../utils/constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
 
 const {width} = Dimensions.get('window');
 
 const Search = () => {
   const [result, setResult] = useState([]);
+  const navigation = useNavigation();
 
   const search = async (query: string) => {
+    const value = await AsyncStorage.getItem('@BlackList');
+
     try {
       const {data} = await connect.get('/search/movie', {
         params: {
@@ -29,7 +34,14 @@ const Search = () => {
           query,
         },
       });
-      setResult(data.results);
+
+      const removeFromSearch =
+        value != null ? new Set(JSON.parse(value)) : new Set();
+      const results = data.results.filter((movie: any) => {
+        return !removeFromSearch.has(movie.id);
+      });
+
+      setResult(results);
     } catch (error) {}
   };
 
@@ -53,13 +65,19 @@ const Search = () => {
       <View style={FlexDirections.row}>
         {result.map((movie: any, index: number) => (
           <View key={index} style={styles.column}>
-            <Image
-              source={{
-                uri: `${CONSTANT.imgUrl}${movie.poster_path}`,
-              }}
-              style={[styles.imgSize]}
-              resizeMode="cover"
-            />
+            <TouchableOpacity
+              key={index}
+              onPress={() =>
+                navigation.navigate('Details' as never, movie as never)
+              }>
+              <Image
+                source={{
+                  uri: `${CONSTANT.imgUrl}${movie.poster_path}`,
+                }}
+                style={[styles.imgSize]}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
           </View>
         ))}
       </View>
@@ -74,10 +92,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     borderRadius: 8,
-    
   },
   column: {
-    width: (width / 3),
-    padding: 4
+    width: width / 3,
+    padding: 4,
   },
 });

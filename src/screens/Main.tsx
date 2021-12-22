@@ -1,9 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {Alert, Dimensions, Image, ScrollView} from 'react-native';
+import React, {useContext, useEffect, useState} from 'react';
+import {
+  Alert,
+  Dimensions,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import MovieScrollView from '../components/MovieScrollView';
 import {connect} from '../core/base';
 import {CONSTANT} from '../utils/constants';
 import {handleError} from '../utils/error-handler';
+import {useNavigation} from '@react-navigation/native';
+import FavContext from '../context/Fav';
 
 const {width} = Dimensions.get('window');
 
@@ -14,6 +22,9 @@ const Main = () => {
   const [hero, setHero] = useState<any>();
   const [topRated, setTopRated] = useState<any>([]);
   const [popular, setPopular] = useState<any>([]);
+  const navigation = useNavigation();
+  const { fav } = useContext(FavContext);
+
 
   const getHero = async () => {
     try {
@@ -65,15 +76,21 @@ const Main = () => {
   return (
     <ScrollView>
       {hero && (
-        <Image
-          source={{uri: `${CONSTANT.imgUrl}${hero.backdrop_path}`}}
-          style={{width: '100%', height: 350}}
-          resizeMode="cover"
-        />
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('Details' as never, hero as never)
+          }>
+          <Image
+            source={{uri: `${CONSTANT.imgUrl}${hero.backdrop_path}`}}
+            style={{width: '100%', height: 350}}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
       )}
       <MovieScrollView heading="Rcommended" data={recommended} />
       <MovieScrollView heading="Popular" data={popular} />
       <MovieScrollView heading="Top Rated" data={topRated} />
+      {fav.length > 0 && <MovieScrollView heading="Favorite" data={fav} />}
     </ScrollView>
   );
 };
